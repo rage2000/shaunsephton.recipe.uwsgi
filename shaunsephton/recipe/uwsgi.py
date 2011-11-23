@@ -31,7 +31,7 @@ class UWSGI:
             elif key.startswith('_'):
                 continue
             self.conf[key] = options.get(key, None)
-            
+
         self.options = options
 
     def download_release(self):
@@ -144,8 +144,11 @@ class UWSGI:
             if value.lower() == 'true':
                 conf += "<%s/>\n" % key
             elif value and value.lower() != 'false':
-                conf += "<%s>%s</%s>\n" % (key, value, key)
-
+                if '\n' in value:
+                    for subvalue in value.split('\n'):
+                        conf += "<%s>%s</%s>\n" % (key, subvalue, key)
+                else:
+                    conf += "<%s>%s</%s>\n" % (key, value, key)
 
         requirements, ws = self.egg.working_set()
         paths = zc.buildout.easy_install._get_path(ws, self.get_extra_paths())
@@ -177,9 +180,9 @@ class UWSGI:
 
         # Create uWSGI conf xml.
         paths.append(self.create_conf_xml())
-        
+
         return paths
-    
+
     def update(self):
         # Create uWSGI conf xml - the egg set might have changed even if
         # the uwsgi section is unchanged so it's safer to re-generate the xml
